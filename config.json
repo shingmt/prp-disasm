@@ -1,0 +1,10 @@
+{
+    "kafka_bootstrap_servers": ["172.17.0.1:9092"],
+    "module_code": "prp-disasm",
+    "module_type": "preprocessor",
+    "module_otype": "file",
+    "module_indir": "/data/modules/prp-disasm/input",
+    "module_outdir": "/data/modules/prp-disasm/output",
+    "module_input_format": "filepath",
+    "module_output_format": "filepath"
+}
