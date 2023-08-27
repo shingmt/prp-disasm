@@ -93,15 +93,18 @@ class SilentWorker(SilentWorkerBase):
         try:
             self.dir__asm_raw = f'{self.module_outdir}/asm_raw'
             self.dir__asm_cleaned = f'{self.module_outdir}/asm_cleaned'
+            self.dir__cfg = f'{self.module_outdir}/cfg'
 
             if not os.path.isdir(self.dir__asm_raw):
                 os.makedirs(self.dir__asm_raw)
             if not os.path.isdir(self.dir__asm_cleaned):
                 os.makedirs(self.dir__asm_cleaned)
+            if not os.path.isdir(self.dir__cfg):
+                os.makedirs(self.dir__cfg)
                 
             return True
         except:
-            log(f'[x][SilentWorker][create_out_dirs] errors while creating {self.dir__asm_raw} or {self.dir__asm_cleaned}', 'error')
+            log(f'[x][SilentWorker][create_out_dirs] errors while creating {self.dir__asm_raw} or {self.dir__asm_cleaned} or {self.dir__cfg}', 'error')
             return False
 
 
@@ -110,9 +113,18 @@ class SilentWorker(SilentWorkerBase):
         if has_outdir is False:
             return None, None
 
+        filename = os.path.basename(filepath)
+
         r = r2pipe.open(filepath)
-        asm_raw = r.cmd('pd')
         # log(f'[SilentWorker][disasm] [ ]   asm_raw : {asm_raw}')
+        log('>> aaa')
+        r.cmd('aaa')
+        log('>> agC > dot/{}/{}.dot'.format(self.dir__cfg, filename))
+        og = r.cmd('agC > dot/{}/{}.dot'.format(self.dir__cfg, filename))
+        log('>> agC > ... = ', og)
+
+        log('>> pd')
+        asm_raw = r.cmd('pd')
 
         od = asm_raw.split('\n')
 
@@ -209,7 +221,7 @@ class SilentWorker(SilentWorkerBase):
             open(f'{self.dir__asm_cleaned}/{filename}.asm', 'w').write(asm_cleaned)
 
             #? add to result dict
-            result[orig_filehash] = f'{self.dir__asm_cleaned}/{filename}.asm'
+            result[orig_filehash] = [f'{self.dir__asm_cleaned}/{filename}.asm', f'{self.dir__cfg}/{filename}.jpg', f'{self.dir__cfg}/{filename}.dot']
 
             
         #! Call __onFinishInfer__ when the analysis is done. This can be called from anywhere in your code. In case you need synchronous processing

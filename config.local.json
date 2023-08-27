@@ -6,5 +6,5 @@
     "module_indir": "/home/mta-smad/smad-3/data/modules/prp-disasm/input",
     "module_outdir": "/home/mta-smad/smad-3/data/modules/prp-disasm/output",
     "module_input_format": "filepath",
-    "module_output_format": "filepath"
+    "module_output_format": ["filepath", "filepath", "filepath"]
 }
