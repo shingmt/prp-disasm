@@ -19,6 +19,7 @@ from utils.utils import log
 import r2pipe
 import os
 import re
+from subprocess import check_call
 
 
 class SilentWorker(SilentWorkerBase):
@@ -109,6 +110,10 @@ class SilentWorker(SilentWorkerBase):
 
 
     def disasm(self, filepath):
+        if not os.path.isfile(filepath):
+            log(f'[!][SilentWorker][disasm] File not exists: {filepath}')
+            return
+
         has_outdir = self.create_out_dirs()
         if has_outdir is False:
             return None, None
@@ -119,9 +124,17 @@ class SilentWorker(SilentWorkerBase):
         # log(f'[SilentWorker][disasm] [ ]   asm_raw : {asm_raw}')
         log('>> aaa')
         r.cmd('aaa')
-        log('>> agC > dot/{}/{}.dot'.format(self.dir__cfg, filename))
-        og = r.cmd('agC > dot/{}/{}.dot'.format(self.dir__cfg, filename))
-        log('>> agC > ... = ', og)
+        log(f'>> agC > {self.dir__cfg}/{filename}.dot')
+        og = r.cmd(f'agC > {self.dir__cfg}/{filename}.dot')
+        log(f'>> agC > ... = {og}')
+        
+        #? convert dot to png
+        #? output is not of dot format (it's text), cannot convert to image
+        # log('   converting dot to png ')
+        # try:
+        #     check_call(['dot', '-Tpng', f'{self.dir__cfg}/{filename}.dot', '-o', f'{self.dir__cfg}/{filename}.png'])
+        # except:
+        #     log(f'[!] converting to png failed. File might be corrupted or too large')
 
         log('>> pd')
         asm_raw = r.cmd('pd')
@@ -194,35 +207,38 @@ class SilentWorker(SilentWorkerBase):
         #! Do something
         log('[ ][SilentWorker][infer] I\'m pretty')
 
-        result = {}
-        for orig_filehash, filepath in self._map_ohash_inputs.items():
-            filename = os.path.basename(filepath)
+        try:
+            result = {}
+            for orig_filehash, filepath in self._map_ohash_inputs.items():
+                filename = os.path.basename(filepath)
 
-            log(f'[SilentWorker][infer] [ ] Processing {filepath}')
+                log(f'[SilentWorker][infer] [ ] Processing {filepath}')
 
-            if not os.path.isfile(filepath):
-                log(f'[SilentWorker][infer] [x] {filepath} not found')
-                continue
+                if not os.path.isfile(filepath):
+                    log(f'[SilentWorker][infer] [x] {filepath} not found')
+                    continue
 
-            # r = r2pipe.open(filepath)
-            # log('\t aaa')
-            # r.cmd('aaa')
-            # log('\t agC > dot/{}/{}.dot'.format(dirname, file))
-            # og = r.cmd('agC > dot/{}/{}.dot'.format(dirname, file))
-            # log('\t agC', og)
+                # r = r2pipe.open(filepath)
+                # log('\t aaa')
+                # r.cmd('aaa')
+                # log('\t agC > dot/{}/{}.dot'.format(dirname, file))
+                # og = r.cmd('agC > dot/{}/{}.dot'.format(dirname, file))
+                # log('\t agC', og)
 
-            asm_raw, asm_cleaned = self.disasm(filepath)
+                asm_raw, asm_cleaned = self.disasm(filepath)
 
-            if asm_raw is None or asm_cleaned is None:
-                log(f'[SilentWorker][infer] [x] {asm_raw} or {asm_cleaned} is None')
-                continue
+                if asm_raw is None or asm_cleaned is None:
+                    log(f'[SilentWorker][infer] [x] {asm_raw} or {asm_cleaned} is None')
+                    continue
+                    
+                open(f'{self.dir__asm_raw}/{filename}.asm', 'w').write(asm_raw)
+                open(f'{self.dir__asm_cleaned}/{filename}.asm', 'w').write(asm_cleaned)
+
+                #? add to result dict
+                result[orig_filehash] = [f'{self.dir__asm_cleaned}/{filename}.asm', f'{self.dir__cfg}/{filename}.png', f'{self.dir__cfg}/{filename}.dot']
+
                 
-            open(f'{self.dir__asm_raw}/{filename}.asm', 'w').write(asm_raw)
-            open(f'{self.dir__asm_cleaned}/{filename}.asm', 'w').write(asm_cleaned)
-
-            #? add to result dict
-            result[orig_filehash] = [f'{self.dir__asm_cleaned}/{filename}.asm', f'{self.dir__cfg}/{filename}.jpg', f'{self.dir__cfg}/{filename}.dot']
-
-            
-        #! Call __onFinishInfer__ when the analysis is done. This can be called from anywhere in your code. In case you need synchronous processing
-        self.__onFinishInfer__(result)
+            #! Call __onFinishInfer__ when the analysis is done. This can be called from anywhere in your code. In case you need synchronous processing
+            self.__onFinishInfer__(result)
+        except Exception as e:
+            log(f'[!][SilentWorker][infer] Failed with exception: {e}')

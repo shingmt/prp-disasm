@@ -3,8 +3,8 @@
     "module_code": "prp-disasm",
     "module_type": "preprocessor",
     "module_otype": "file",
-    "module_indir": "/home/mta-smad/smad-3/data/modules/prp-disasm/input",
-    "module_outdir": "/home/mta-smad/smad-3/data/modules/prp-disasm/output",
+    "module_indir": "/var/csp/data/modules/prp-disasm/input",
+    "module_outdir": "/var/csp/data/modules/prp-disasm/output",
     "module_input_format": "filepath",
     "module_output_format": ["filepath", "filepath", "filepath"]
 }
